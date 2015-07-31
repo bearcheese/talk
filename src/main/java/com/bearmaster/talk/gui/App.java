@@ -1,49 +1,48 @@
 package com.bearmaster.talk.gui;
 
-import java.awt.Component;
-import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.util.EventObject;
-
-import javax.swing.AbstractAction;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-
-import org.jdesktop.application.Action;
 import org.jdesktop.application.SingleFrameApplication;
 import org.jdesktop.application.View;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
-import com.bearmaster.talk.gui.component.LoginPanel;
-import com.bearmaster.talk.gui.controller.LoginContoller;
-import com.bearmaster.talk.gui.listener.ConfirmExitListener;
+import com.bearmaster.talk.gui.controller.MainController;
+import com.bearmaster.talk.util.AppConfig;
 
 public class App extends SingleFrameApplication {
     
-    private LoginContoller loginController;
+    private MainController mainController;
+    
+    private AnnotationConfigApplicationContext springContext;
 
     @Override
     protected void startup() {
-        loginController = new LoginContoller(this);
+        springContext = initSpringContext();
         
-        addExitListener(new ConfirmExitListener());
+        mainController = springContext.getBean(MainController.class);
+        
+        addExitListener(mainController.getExitListener());
         
         View view = getMainView();
         
-        view.setComponent(loginController.getView());
-        
-        System.out.println(getContext().getResourceMap(LoginPanel.class).keySet());
+        view.setComponent(mainController.getInitialView());
         
         show(view);
+    }
+    
+    private AnnotationConfigApplicationContext initSpringContext() {
+        AppConfig.setApplication(this);
+        AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
+        ctx.register(AppConfig.class);
+        ctx.refresh();
+        
+        return ctx;
+    }
+    
+    public ApplicationContext getSpringApplicationContext() {
+        return springContext;
     }
 
     public static void main(String[] args) {
         launch(App.class, args);
     }
-    
-    //@Action
-    public void loginAction() {
-        System.out.println("Main login action...");
-    }
-
 }
