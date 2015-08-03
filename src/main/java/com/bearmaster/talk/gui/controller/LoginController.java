@@ -30,7 +30,7 @@ public class LoginController extends AbstractController {
     
     @PostConstruct
     protected void initView() {
-        application.getContext().getResourceMap(LoginPanel.class).injectComponents(loginPanel.getComponent());
+        application.getContext().getResourceMap(LoginPanel.class).injectComponents(loginPanel);
         javax.swing.Action loginAction = application.getContext().getActionManager().getActionMap(LoginController.class, this).get("loginAction");
         loginPanel.setSubmitButtonAction(loginAction);
         initialised = true;
@@ -41,7 +41,7 @@ public class LoginController extends AbstractController {
         if (!initialised) {
             initView();
         }   
-        return loginPanel.getComponent();
+        return loginPanel;
     }
     
     @Override

@@ -19,8 +19,10 @@ import com.jgoodies.forms.factories.Paddings;
 
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
-public class LoginPanel {
-    
+public class LoginPanel extends JPanel {
+
+    private static final long serialVersionUID = 2620793246331084370L;
+
     private JTextField usernameField;
     
     private JPasswordField passwordField;
@@ -34,8 +36,6 @@ public class LoginPanel {
     private JLabel passwordLabel;
     
     private JLabel rememberMeLabel;
-    
-    private JPanel loginPanel;
     
     public LoginPanel() {
         initComponents();
@@ -72,9 +72,11 @@ public class LoginPanel {
         
         rememberMeLabel.setLabelFor(rememberMeCheckBox);
         
-        loginPanel = FormBuilder.create()
+        FormBuilder.create()
         .columns("10dlu, pref, left:pref:grow, 10dlu")
         .rows("5dlu, pref, 1dlu, pref, 1dlu, pref, 1dlu, pref, 1dlu, pref, 2dlu, pref, pref:grow")
+        .panel(this)
+        .name("loginPanel")
         .padding(Paddings.DIALOG)
         .add(usernameLabel).xyw(2, 2, 2)
         .add(usernameField).xyw(2, 4, 2)
@@ -84,12 +86,10 @@ public class LoginPanel {
         .add(rememberMeLabel).xy(3, 10)
         .add(submitButton).xyw(2, 12, 2)
         .build();
-        
-        loginPanel.setName("loginPanel");
     }
     
     public JComponent getComponent() {
-        return loginPanel;
+        return this;
     }
     
     public void setSubmitButtonAction(Action action) {

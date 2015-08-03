@@ -3,7 +3,6 @@ package com.bearmaster.talk.gui.controller;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
-import java.util.ArrayList;
 
 import javax.annotation.PostConstruct;
 import javax.swing.JComponent;
@@ -18,7 +17,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
-import com.bearmaster.talk.gui.component.FriendListPanel;
 import com.bearmaster.talk.gui.listener.ConfirmExitListener;
 import com.bearmaster.talk.model.User;
 import com.bearmaster.talk.services.impl.XMPPChatService;
@@ -33,6 +31,9 @@ public class MainController {
     
     @Autowired
     private LoginController loginController;
+    
+    @Autowired
+    private FriendListController friendListController;
     
     @Autowired
     private XMPPChatService chatService;
@@ -56,7 +57,8 @@ public class MainController {
                 LOGGER.info("Logging in with user: {}", user);
                 chatService.initConnection();
                 chatService.login(user.getName(), user.getPassword());
-                application.getMainView().setComponent(new FriendListPanel(new ArrayList<RosterEntry>(chatService.getRosterEntries())));
+                
+                application.getMainView().setComponent(friendListController.getView());
                 application.show(application.getMainView());
                 loginController.destroyView();
                 
