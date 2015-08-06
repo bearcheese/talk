@@ -1,11 +1,16 @@
 package com.bearmaster.talk.services.impl;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
+import org.jivesoftware.smack.chat.Chat;
+import org.jivesoftware.smack.chat.ChatManager;
+import org.jivesoftware.smack.chat.ChatMessageListener;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.roster.RosterEntry;
@@ -14,10 +19,13 @@ import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
+import com.bearmaster.talk.model.Friend;
 import com.bearmaster.talk.services.ChatService;
 
+@Primary
 @Service
 public class XMPPChatService implements ChatService {
     
@@ -80,11 +88,7 @@ public class XMPPChatService implements ChatService {
         }
     }
     
-    /* (non-Javadoc)
-     * @see com.bearmaster.talk.services.impl.ChatService#getRosterEntries()
-     */
-    @Override
-    public Collection<RosterEntry> getRosterEntries() {
+    protected Collection<RosterEntry> getRosterEntries() {
         if (connection != null) {
             Roster roster = Roster.getInstanceFor(connection);
             
@@ -100,11 +104,40 @@ public class XMPPChatService implements ChatService {
         }
     }
     
+    @Override
+    public List<Friend> getFriendList() {
+        Collection<RosterEntry> rosterEntries = getRosterEntries();
+        List<Friend> friendList = new ArrayList<>(rosterEntries.size());
+        Roster roster = Roster.getInstanceFor(connection);
+        
+        for (RosterEntry entry : rosterEntries) {
+            Presence presence = roster.getPresence(entry.getUser());
+            Friend friend = new Friend(entry, presence);
+            
+            friendList.add(friend);
+        }
+        
+        return friendList;
+    }
+    
+    @Override
     public void logoutAndDisconnect() {
         if (connection != null) {
             LOGGER.info("Destroying connection...");
             connection.disconnect();
             connection = null;
+        }
+    }
+    
+    @Override
+    public Chat createChat(String jid, ChatMessageListener listener) {
+        
+        if (connection != null) {
+            ChatManager chatmanager = ChatManager.getInstanceFor(connection);
+            Chat newChat = chatmanager.createChat(jid, listener);
+            return newChat;
+        } else {
+            throw new IllegalStateException("Connection is not initialised!");
         }
     }
 }

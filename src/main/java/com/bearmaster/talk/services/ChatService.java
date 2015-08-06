@@ -1,18 +1,25 @@
 package com.bearmaster.talk.services;
 
 import java.io.IOException;
-import java.util.Collection;
+import java.util.List;
 
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
-import org.jivesoftware.smack.roster.RosterEntry;
+import org.jivesoftware.smack.chat.Chat;
+import org.jivesoftware.smack.chat.ChatMessageListener;
+
+import com.bearmaster.talk.model.Friend;
 
 public interface ChatService {
 
-    public abstract void initConnection();
+    void initConnection();
 
-    public abstract void login(String username, String password) throws XMPPException, SmackException, IOException;
+    void login(String username, String password) throws XMPPException, SmackException, IOException;
 
-    public abstract Collection<RosterEntry> getRosterEntries();
+    List<Friend> getFriendList();
+
+    void logoutAndDisconnect();
+
+    Chat createChat(String jid, ChatMessageListener listener);
 
 }

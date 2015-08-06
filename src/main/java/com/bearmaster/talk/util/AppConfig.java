@@ -27,5 +27,4 @@ public class AppConfig {
     public SingleFrameApplication getApplication() {
         return application;
     }
-
 }

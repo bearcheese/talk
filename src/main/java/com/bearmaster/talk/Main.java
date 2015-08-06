@@ -54,6 +54,8 @@ public class Main {
 			System.out.println(entry);
 		}
 
+		chat(connection);
+		
 		connection.disconnect();
 
 	}
@@ -61,7 +63,7 @@ public class Main {
 	private static void chat(XMPPConnection connection) throws NotConnectedException {
 		// Assume we've created an XMPPConnection name "connection"._
 		ChatManager chatmanager = ChatManager.getInstanceFor(connection);
-		Chat newChat = chatmanager.createChat("mpety3@gmail.com",
+		Chat newChat = chatmanager.createChat("09t518s6u0g2s1eld93u6a1dtn@public.talk.google.com",
 				new ChatMessageListener() {
 
 					@Override

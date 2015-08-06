@@ -7,13 +7,15 @@ import javax.swing.JComponent;
 
 import org.jdesktop.application.Action;
 import org.jdesktop.application.Application;
+import org.jdesktop.application.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import com.bearmaster.talk.gui.component.LoginPanel;
-import com.bearmaster.talk.model.User;
+import com.bearmaster.talk.services.ChatService;
+import com.bearmaster.talk.task.UserLoginTask;
 
 @Controller
 public class LoginController extends AbstractController {
@@ -26,6 +28,11 @@ public class LoginController extends AbstractController {
     @Autowired
     private LoginPanel loginPanel;
     
+    @Autowired
+    private ChatService chatService;
+    
+    private UserLoginTask loginTask;
+    
     private boolean initialised = false;
     
     @PostConstruct
@@ -33,6 +40,7 @@ public class LoginController extends AbstractController {
         application.getContext().getResourceMap(LoginPanel.class).injectComponents(loginPanel);
         javax.swing.Action loginAction = application.getContext().getActionManager().getActionMap(LoginController.class, this).get("loginAction");
         loginPanel.setSubmitButtonAction(loginAction);
+        loginTask = new UserLoginTask(application, chatService);
         initialised = true;
     }
     
@@ -49,13 +57,17 @@ public class LoginController extends AbstractController {
         loginPanel = null;
     }
     
-    public User getUser() {
-        return loginPanel.getUser();
-    }
-    
     @Action
-    public void loginAction(ActionEvent event) {
+    public Task<Void, Void> loginAction(ActionEvent event) {
         LOGGER.debug("Login action called with by {}", event.getSource());
         propertyChangeSupport.firePropertyChange("loginActionFired", false, true);
+        
+        loginTask.setUser(loginPanel.getUser());
+        
+        return loginTask;
+    }
+
+    public UserLoginTask getLoginTask() {
+        return loginTask;
     }
 }
