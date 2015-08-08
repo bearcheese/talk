@@ -32,7 +32,7 @@ public class ChatController extends AbstractController {
     @Autowired
     private ChatService chatService;
     
-    private Map<Friend, ChatFrame> chatFrameMap;
+    //private Map<Friend, ChatFrame> chatFrameMap;
     
     public JFrame openNewChatWindowWithFriend(Friend friend) {
         LOGGER.debug("Opening new chat frame for friend {}", friend);
@@ -42,6 +42,7 @@ public class ChatController extends AbstractController {
             
             @Override
             public void processMessage(Chat chat, Message message) {
+                LOGGER.debug("{} said: {}", chat.getParticipant(), message.getBody());
                 chatFrame.appendFriendMessageToChat(message.getBody());
             }
         });
@@ -61,7 +62,7 @@ public class ChatController extends AbstractController {
             }
         });
         
-        chatFrameMap.put(friend, chatFrame);
+        //chatFrameMap.put(friend, chatFrame);
         
                 
         return chatFrame;
