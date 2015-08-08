@@ -2,7 +2,6 @@ package com.bearmaster.talk.gui.controller;
 
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.util.Map;
 
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -32,8 +31,6 @@ public class ChatController extends AbstractController {
     @Autowired
     private ChatService chatService;
     
-    //private Map<Friend, ChatFrame> chatFrameMap;
-    
     public JFrame openNewChatWindowWithFriend(Friend friend) {
         LOGGER.debug("Opening new chat frame for friend {}", friend);
         final ChatFrame chatFrame = new ChatFrame(application.getMainFrame(), friend);
@@ -42,12 +39,13 @@ public class ChatController extends AbstractController {
             
             @Override
             public void processMessage(Chat chat, Message message) {
-                LOGGER.debug("{} said: {}", chat.getParticipant(), message.getBody());
-                chatFrame.appendFriendMessageToChat(message.getBody());
+                if (message.getBody() != null) {
+					LOGGER.debug("{} said: {}", chat.getParticipant(), message.getBody());
+					chatFrame.appendFriendMessageToChat(message.getBody());
+				}
             }
         });
 
-        
         chatFrame.addInputFieldKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent event) {
@@ -60,10 +58,7 @@ public class ChatController extends AbstractController {
                     }
                 }
             }
-        });
-        
-        //chatFrameMap.put(friend, chatFrame);
-        
+        });    
                 
         return chatFrame;
     }

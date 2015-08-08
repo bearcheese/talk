@@ -1,6 +1,5 @@
 package com.bearmaster.talk.gui.component;
 
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.List;

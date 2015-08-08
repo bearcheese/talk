@@ -23,12 +23,11 @@ import org.slf4j.LoggerFactory;
 
 import com.bearmaster.talk.model.Friend;
 import com.jgoodies.forms.builder.FormBuilder;
+import com.jgoodies.forms.factories.Paddings;
 
 public class ChatFrame extends JFrame {
 
     private static final long serialVersionUID = -7668869257901589264L;
-
-    private static final String CHAT_LOG_FORMAT = "%s: %s\n";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ChatFrame.class);
 
@@ -39,6 +38,8 @@ public class ChatFrame extends JFrame {
     private JTextPane chatLog;
 
     private JTextArea input;
+    
+    private String lastInputCameFrom = "";
 
     public ChatFrame(JFrame mainFrame, Friend friend) {
         this.friend = friend;
@@ -55,27 +56,26 @@ public class ChatFrame extends JFrame {
         
         addStylesToDocument(chatLog.getStyledDocument());
         
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(chatLog.getBackground());
         
+        panel.add(chatLog, BorderLayout.SOUTH);
         
-        JPanel noWrapPanel = new JPanel(new BorderLayout());
-        
-        
-        JScrollPane scrollPane = new JScrollPane(noWrapPanel);
-        scrollPane.setViewportView(noWrapPanel);
-        noWrapPanel.add(chatLog);
-        //scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        JScrollPane scrollPane = new JScrollPane();
+        scrollPane.setViewportView(chatLog);
 
         input = new JTextArea();
         input.setLineWrap(true);
         input.setWrapStyleWord(true);
+        input.setFont(input.getFont().deriveFont(12f));
 
-        FormBuilder formBuilder = FormBuilder.create().columns("fill:max(150dlu;pref):grow")
-                .rows("fill:200dlu:grow, bottom:pref").add(chatLog).xy(1, 1).add(input).xy(1, 2);
+        FormBuilder formBuilder = FormBuilder.create().columns("fill:150dlu:grow")
+                .rows("fill:200dlu:grow, 5dlu, pref").padding(Paddings.DIALOG).add(scrollPane).xy(1, 1).add(input).xy(1, 3);
 
         getContentPane().add(formBuilder.build());
-
+        
         setLocationRelativeTo(mainFrame);
-
+        
         pack();
 
         setVisible(true);
@@ -90,7 +90,7 @@ public class ChatFrame extends JFrame {
         String message = input.getText().trim();
         addText("Me", message);
         input.setText("");
-
+        
         return message;
     }
 
@@ -102,12 +102,15 @@ public class ChatFrame extends JFrame {
         StyledDocument document = chatLog.getStyledDocument();
         Style defaultStyle = StyleContext.getDefaultStyleContext().getStyle(StyleContext.DEFAULT_STYLE);
         try {
-            document.insertString(document.getLength(), " ", document.getStyle("icon"));
+            if (!lastInputCameFrom.equals(name)) {
+            	document.insertString(document.getLength(), " ", document.getStyle("icon"));
+            }
             document.insertString(document.getLength(), name + ": ", document.getStyle("bold"));
             document.insertString(document.getLength(), s + '\n', defaultStyle);
         } catch (BadLocationException e) {
             LOGGER.error("Cannot append text '{}' to the chat log", s, e);
         }
+        lastInputCameFrom = name;
     }
 
     protected void addStylesToDocument(StyledDocument doc) {
@@ -130,32 +133,19 @@ public class ChatFrame extends JFrame {
         StyleConstants.setFontSize(s, 16);
 
         s = doc.addStyle("icon", regular);
-        //StyleConstants.setAlignment(s, StyleConstants.ALIGN_CENTER);
         ImageIcon unknownProfile = createImageIcon("/com/bearmaster/talk/gui/resources/user.png", "no profile pic");
         if (unknownProfile != null) {
             StyleConstants.setIcon(s, unknownProfile);
         }
-
-        /*
-         * s = doc.addStyle("button", regular); StyleConstants.setAlignment(s,
-         * StyleConstants.ALIGN_CENTER); ImageIcon soundIcon =
-         * createImageIcon("images/sound.gif", "sound icon"); JButton button =
-         * new JButton(); if (soundIcon != null) { button.setIcon(soundIcon); }
-         * else { button.setText("BEEP"); }
-         * button.setCursor(Cursor.getDefaultCursor()); button.setMargin(new
-         * Insets(0,0,0,0)); button.setActionCommand(buttonString);
-         * button.addActionListener(this); StyleConstants.setComponent(s,
-         * button);
-         */
     }
 
-    /** Returns an ImageIcon, or null if the path was invalid. */
+    //TODO use central resource manager
     protected static ImageIcon createImageIcon(String path, String description) {
         java.net.URL imgURL = ChatFrame.class.getResource(path);
         if (imgURL != null) {
             return new ImageIcon(imgURL, description);
         } else {
-            System.err.println("Couldn't find file: " + path);
+            LOGGER.warn("Couldn't find image file: {}", path);
             return null;
         }
     }
@@ -167,7 +157,7 @@ public class ChatFrame extends JFrame {
             public void run() {
                 Friend dummy = new Friend("dummy", "Frank", null);
                 ChatFrame frame = new ChatFrame(null, dummy);
-                frame.addInputFieldKeyListener(new ParrotKeyListener(frame));
+                frame.addInputFieldKeyListener(new ParrotKeyListener(frame, 3));
             }
         });
     }
@@ -175,16 +165,32 @@ public class ChatFrame extends JFrame {
     private static class ParrotKeyListener extends KeyAdapter {
 
         private ChatFrame frame;
+        
+        private int freq;
+        
+        private int counter;
+        
+        private StringBuilder builder;
 
-        public ParrotKeyListener(ChatFrame frame) {
+        public ParrotKeyListener(ChatFrame frame, int freq) {
             this.frame = frame;
+            this.freq = freq;
+            this.builder = new StringBuilder();
         }
 
         @Override
         public void keyReleased(KeyEvent event) {
             if (!event.isShiftDown() && event.getKeyCode() == KeyEvent.VK_ENTER) {
                 String message = frame.appendInputTextToChat();
-                frame.appendFriendMessageToChat("Parrot says: " + message);
+                builder.append(message);
+                builder.append(" ");
+                counter++;
+                
+                if (counter % freq == 0) {
+                	frame.appendFriendMessageToChat("Parrot says: " + builder.toString());
+                	builder.setLength(0);
+                	counter = 0;
+                }
             }
 
         }
