@@ -38,7 +38,7 @@ public class ChatFrame extends JFrame {
     private JTextPane chatLog;
 
     private JTextArea input;
-    
+
     private String lastInputCameFrom = "";
 
     public ChatFrame(JFrame mainFrame, Friend friend) {
@@ -53,14 +53,14 @@ public class ChatFrame extends JFrame {
 
         chatLog = new JTextPane();
         chatLog.setEditable(false);
-        
+
         addStylesToDocument(chatLog.getStyledDocument());
-        
+
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(chatLog.getBackground());
-        
+
         panel.add(chatLog, BorderLayout.SOUTH);
-        
+
         JScrollPane scrollPane = new JScrollPane();
         scrollPane.setViewportView(chatLog);
 
@@ -69,13 +69,13 @@ public class ChatFrame extends JFrame {
         input.setWrapStyleWord(true);
         input.setFont(input.getFont().deriveFont(12f));
 
-        FormBuilder formBuilder = FormBuilder.create().columns("fill:150dlu:grow")
-                .rows("fill:200dlu:grow, 5dlu, pref").padding(Paddings.DIALOG).add(scrollPane).xy(1, 1).add(input).xy(1, 3);
+        FormBuilder formBuilder = FormBuilder.create().columns("fill:150dlu:grow").rows("fill:200dlu:grow, 5dlu, pref")
+                .padding(Paddings.DIALOG).add(scrollPane).xy(1, 1).add(input).xy(1, 3);
 
         getContentPane().add(formBuilder.build());
-        
+
         setLocationRelativeTo(mainFrame);
-        
+
         pack();
 
         setVisible(true);
@@ -90,7 +90,7 @@ public class ChatFrame extends JFrame {
         String message = input.getText().trim();
         addText("Me", message);
         input.setText("");
-        
+
         return message;
     }
 
@@ -99,11 +99,16 @@ public class ChatFrame extends JFrame {
     }
 
     protected void addText(String name, String s) {
+        if (!isVisible()) {
+            setVisible(true);
+        }
+        
+        
         StyledDocument document = chatLog.getStyledDocument();
         Style defaultStyle = StyleContext.getDefaultStyleContext().getStyle(StyleContext.DEFAULT_STYLE);
         try {
             if (!lastInputCameFrom.equals(name)) {
-            	document.insertString(document.getLength(), " ", document.getStyle("icon"));
+                document.insertString(document.getLength(), " ", document.getStyle("icon"));
             }
             document.insertString(document.getLength(), name + ": ", document.getStyle("bold"));
             document.insertString(document.getLength(), s + '\n', defaultStyle);
@@ -139,7 +144,7 @@ public class ChatFrame extends JFrame {
         }
     }
 
-    //TODO use central resource manager
+    // TODO use central resource manager
     protected static ImageIcon createImageIcon(String path, String description) {
         java.net.URL imgURL = ChatFrame.class.getResource(path);
         if (imgURL != null) {
@@ -165,11 +170,11 @@ public class ChatFrame extends JFrame {
     private static class ParrotKeyListener extends KeyAdapter {
 
         private ChatFrame frame;
-        
+
         private int freq;
-        
+
         private int counter;
-        
+
         private StringBuilder builder;
 
         public ParrotKeyListener(ChatFrame frame, int freq) {
@@ -185,11 +190,11 @@ public class ChatFrame extends JFrame {
                 builder.append(message);
                 builder.append(" ");
                 counter++;
-                
+
                 if (counter % freq == 0) {
-                	frame.appendFriendMessageToChat("Parrot says: " + builder.toString());
-                	builder.setLength(0);
-                	counter = 0;
+                    frame.appendFriendMessageToChat("Parrot says: " + builder.toString());
+                    builder.setLength(0);
+                    counter = 0;
                 }
             }
 

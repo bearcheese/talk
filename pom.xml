@@ -59,9 +59,9 @@
     </dependency>
 
     <dependency>
-      <groupId>net.java.dev.swing-layout</groupId>
-      <artifactId>swing-layout</artifactId>
-      <version>1.0.2</version>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.4</version>
     </dependency>
 
 

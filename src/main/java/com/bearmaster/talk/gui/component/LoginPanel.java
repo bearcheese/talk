@@ -1,5 +1,8 @@
 package com.bearmaster.talk.gui.component;
 
+import java.awt.Color;
+import java.awt.Font;
+
 import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -37,11 +40,17 @@ public class LoginPanel extends JPanel {
     
     private JLabel rememberMeLabel;
     
+    private JLabel errorLabel;
+    
     public LoginPanel() {
         initComponents();
     }
     
     private void initComponents() {
+        
+        errorLabel = new JLabel();
+        errorLabel.setFont(errorLabel.getFont().deriveFont(Font.BOLD));
+        errorLabel.setForeground(Color.RED);
         
         usernameLabel = new JLabel();
         usernameLabel.setName("usernameLabel");
@@ -65,6 +74,7 @@ public class LoginPanel extends JPanel {
         
         rememberMeCheckBox = new JCheckBox();
         rememberMeCheckBox.setName("rememberMeCheckBox");
+        rememberMeCheckBox.setEnabled(false);
         
         usernameLabel.setLabelFor(usernameField);
         
@@ -74,17 +84,18 @@ public class LoginPanel extends JPanel {
         
         FormBuilder.create()
         .columns("10dlu, pref, left:pref:grow, 10dlu")
-        .rows("5dlu, pref, 1dlu, pref, 1dlu, pref, 1dlu, pref, 1dlu, pref, 2dlu, pref, pref:grow")
+        .rows("5dlu, pref, 5dlu, pref, 1dlu, pref, 1dlu, pref, 1dlu, pref, 1dlu, pref, 2dlu, pref, pref:grow")
         .panel(this)
         .name("loginPanel")
         .padding(Paddings.DIALOG)
-        .add(usernameLabel).xyw(2, 2, 2)
-        .add(usernameField).xyw(2, 4, 2)
-        .add(passwordLabel).xyw(2, 6, 2)
-        .add(passwordField).xyw(2, 8, 2)
-        .add(rememberMeCheckBox).xy(2, 10)
-        .add(rememberMeLabel).xy(3, 10)
-        .add(submitButton).xyw(2, 12, 2)
+        .add(errorLabel).xyw(2, 2, 2)
+        .add(usernameLabel).xyw(2, 4, 2)
+        .add(usernameField).xyw(2, 6, 2)
+        .add(passwordLabel).xyw(2, 8, 2)
+        .add(passwordField).xyw(2, 10, 2)
+        .add(rememberMeCheckBox).xy(2, 12)
+        .add(rememberMeLabel).xy(3, 12)
+        .add(submitButton).xyw(2, 14, 2)
         .build();
     }
     
@@ -93,14 +104,18 @@ public class LoginPanel extends JPanel {
     }
     
     public void setSubmitButtonAction(Action action) {
-        if (submitButton != null) {
-            submitButton.setAction(action);
-        }
+        usernameField.setAction(action);
+        passwordField.setAction(action);
+        submitButton.setAction(action);
     }
 
     //TODO security???
     public User getUser() {
         return new User(usernameField.getText(), new String(passwordField.getPassword()));
+    }
+
+    public void displayError(String errorMsg) {
+        errorLabel.setText(errorMsg);
     }
 
 }

@@ -10,6 +10,7 @@ import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.chat.Chat;
 import org.jivesoftware.smack.chat.ChatManager;
+import org.jivesoftware.smack.chat.ChatManagerListener;
 import org.jivesoftware.smack.chat.ChatMessageListener;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.roster.Roster;
@@ -22,27 +23,32 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
+import com.bearmaster.talk.exception.TalkException;
 import com.bearmaster.talk.model.Friend;
 import com.bearmaster.talk.services.ChatService;
 
 @Primary
 @Service
 public class XMPPChatService implements ChatService {
-    
+
+    private static final String ERROR_CONNECTION_IS_NOT_INITIALISED = "Connection is not initialised!";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(XMPPChatService.class);
-    
+
     private AbstractXMPPConnection connection;
-    
+
     @Value("${gtalk.service.name}")
     private String serviceName;
-    
+
     @Value("${gtalk.host}")
     private String host;
-    
+
     @Value("${gtalk.port}")
     private int port;
-    
-    /* (non-Javadoc)
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see com.bearmaster.talk.services.impl.ChatService#initConnection()
      */
     @Override
@@ -54,72 +60,75 @@ public class XMPPChatService implements ChatService {
             LOGGER.warn("Connection is already initialised!");
         }
     }
-    
+
     protected XMPPTCPConnectionConfiguration prepareConnectionConfiguration() {
-        XMPPTCPConnectionConfiguration config = 
-                XMPPTCPConnectionConfiguration.builder()
-                .setServiceName(serviceName)
-                .setHost(host)
-                .setPort(port)
-                .build();
-        
-        return config;
+        return XMPPTCPConnectionConfiguration.builder().setServiceName(serviceName).setHost(host).setPort(port).build();
     }
-    
-    /* (non-Javadoc)
-     * @see com.bearmaster.talk.services.impl.ChatService#login(java.lang.String, java.lang.String)
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.bearmaster.talk.services.impl.ChatService#login(java.lang.String,
+     * java.lang.String)
      */
     @Override
-    public void login(String username, String password) throws XMPPException, SmackException, IOException {
+    public void login(String username, String password) throws TalkException {
         if (connection != null) {
-            if (!connection.isConnected()) {
-                LOGGER.debug("Connecting...");
-                connection.connect();
+            try {
+                if (!connection.isConnected()) {
+                    LOGGER.debug("Connecting...");
+                    connection.connect();
+                }
+                LOGGER.debug("Attemtping login...");
+                connection.login(username, password);
+                LOGGER.debug("Login completed.");
+                Presence presence = new Presence(Presence.Type.available);
+                presence.setMode(Presence.Mode.available);
+                connection.sendStanza(presence);
+                LOGGER.debug("Presence set to available");
+            } catch (SmackException | IOException | XMPPException e) {
+                throw new TalkException("Error during login", e);
             }
-            LOGGER.debug("Attemtping login...");
-            connection.login(username, password);
-            LOGGER.debug("Login completed.");
-            Presence presence = new Presence(Presence.Type.available);
-            presence.setMode(Presence.Mode.available);
-            connection.sendStanza(presence);
-            LOGGER.debug("Presence set to available");
         } else {
-            throw new IllegalStateException("Connection is not initialised!");
+            throw new IllegalStateException(ERROR_CONNECTION_IS_NOT_INITIALISED);
         }
     }
-    
+
     protected Collection<RosterEntry> getRosterEntries() {
         if (connection != null) {
             Roster roster = Roster.getInstanceFor(connection);
-            
+
             while (!roster.isLoaded()) {
                 try {
                     Thread.sleep(1000L);
-                } catch (InterruptedException ignore) {}
+                } catch (InterruptedException ignore) {
+                    // ignore
+                }
             }
             LOGGER.debug("Roster count: {}", roster.getEntryCount());
             return roster.getEntries();
         } else {
-            throw new IllegalStateException("Connection is not initialised!");
+            throw new IllegalStateException(ERROR_CONNECTION_IS_NOT_INITIALISED);
         }
     }
-    
+
     @Override
     public List<Friend> getFriendList() {
         Collection<RosterEntry> rosterEntries = getRosterEntries();
         List<Friend> friendList = new ArrayList<>(rosterEntries.size());
         Roster roster = Roster.getInstanceFor(connection);
-        
+
         for (RosterEntry entry : rosterEntries) {
             Presence presence = roster.getPresence(entry.getUser());
             Friend friend = new Friend(entry, presence);
-            
+
             friendList.add(friend);
         }
-        
+
         return friendList;
     }
-    
+
     @Override
     public void logoutAndDisconnect() {
         if (connection != null) {
@@ -128,16 +137,21 @@ public class XMPPChatService implements ChatService {
             connection = null;
         }
     }
-    
+
     @Override
     public Chat createChat(String jid, ChatMessageListener listener) {
-        
         if (connection != null) {
             ChatManager chatmanager = ChatManager.getInstanceFor(connection);
-            Chat newChat = chatmanager.createChat(jid, listener);
-            return newChat;
+            return chatmanager.createChat(jid, listener);
         } else {
-            throw new IllegalStateException("Connection is not initialised!");
+            throw new IllegalStateException(ERROR_CONNECTION_IS_NOT_INITIALISED);
         }
+    }
+    
+    @Override
+    public void addChatListener(ChatManagerListener listener) {
+        ChatManager chatmanager = ChatManager.getInstanceFor(connection);
+        
+        chatmanager.addChatListener(listener);
     }
 }

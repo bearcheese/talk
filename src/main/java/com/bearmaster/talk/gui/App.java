@@ -6,6 +6,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import com.bearmaster.talk.gui.controller.MainController;
+import com.bearmaster.talk.gui.listener.ConfirmExitListener;
 import com.bearmaster.talk.util.AppConfig;
 
 public class App extends SingleFrameApplication {
@@ -20,7 +21,8 @@ public class App extends SingleFrameApplication {
         
         mainController = springContext.getBean(MainController.class);
         
-        addExitListener(mainController.getExitListener());
+        addExitListener(new ConfirmExitListener());
+        addExitListener(mainController);
         
         View view = getMainView();
         

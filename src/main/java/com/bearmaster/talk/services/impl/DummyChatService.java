@@ -1,12 +1,10 @@
 package com.bearmaster.talk.services.impl;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.jivesoftware.smack.SmackException;
-import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.chat.Chat;
+import org.jivesoftware.smack.chat.ChatManagerListener;
 import org.jivesoftware.smack.chat.ChatMessageListener;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.packet.Presence.Type;
@@ -15,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
+import com.bearmaster.talk.exception.TalkException;
 import com.bearmaster.talk.model.Friend;
 import com.bearmaster.talk.services.ChatService;
 
@@ -45,7 +44,7 @@ public class DummyChatService implements ChatService {
     }
 
     @Override
-    public void login(String username, String password) throws XMPPException, SmackException, IOException {
+    public void login(String username, String password) throws TalkException {
         if (!initialised) {
             throw new IllegalStateException("Dummy chat service connection is not initialised!");
         }
@@ -70,6 +69,11 @@ public class DummyChatService implements ChatService {
     @Override
     public Chat createChat(String jid, ChatMessageListener listener) {
         return null;
+    }
+
+    @Override
+    public void addChatListener(ChatManagerListener listener) {
+        throw new UnsupportedOperationException("Not implemented in the dummy service.");
     }
 
     

@@ -7,19 +7,8 @@ import javax.swing.JOptionPane;
 
 import org.jdesktop.application.Application;
 
-import com.bearmaster.talk.gui.controller.MainController;
-
 public class ConfirmExitListener implements Application.ExitListener {
-
-    private MainController mainController;
     
-    public ConfirmExitListener() {
-    }
-    
-    public ConfirmExitListener(MainController mainController) {
-        this.mainController = mainController;
-    }
-
     @Override
     public boolean canExit(EventObject event) {
         Object source = (event != null) ? event.getSource() : null;
@@ -30,7 +19,7 @@ public class ConfirmExitListener implements Application.ExitListener {
 
     @Override
     public void willExit(EventObject event) {
-        mainController.shutdown();
+        //do nothing
     }
 
 }
